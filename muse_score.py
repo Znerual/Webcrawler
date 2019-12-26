@@ -2,11 +2,10 @@
 #username, password, _csrf
 
 import requests
-from lxml import html
 from bs4 import BeautifulSoup as soup
 
-USERNAME = "u"
-PASSWORT = "u"
+USERNAME = "Laurenz27"
+PASSWORT = "zk9g1fT73k9SSyDmft3N"
 login_url = "https://musescore.com/user/login?destination=%2Fcas%2Flogin"
 url = "https://musescore.com/hub/piano"
 
@@ -18,8 +17,14 @@ def main():
 
     #get the authenticity token
     result = session_requests.get(login_url)
-    tree = html.fromstring(result.text)
-    authenticity_token = list(set(tree.xpath("//input[@name='_csrf']/@value")))[0]
+
+    #xtree lxml
+    #tree = html.fromstring(result.text)
+    #authenticity_token = list(set(tree.xpath("//input[@name='_csrf']/@value")))[0]
+
+    #beautifulsoup
+    result_soup = soup(result.content, 'html.parser')
+    authenticity_token = result_soup.find("input", {"name": "_csrf"})['value']
     payload = {"username": USERNAME,
                "password": PASSWORT,
                "_csrf": authenticity_token}
