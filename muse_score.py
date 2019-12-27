@@ -4,29 +4,31 @@
 import requests
 from bs4 import BeautifulSoup as soup
 
-USERNAME = "Laurenz27"
-PASSWORT = "zk9g1fT73k9SSyDmft3N"
 login_url = "https://musescore.com/user/login?destination=%2Fcas%2Flogin"
 url = "https://musescore.com/hub/piano"
 
 
 def main():
     print("start")
-    #login and get authentification
+    #create a session
     session_requests = requests.session()
 
     #get the authenticity token
     result = session_requests.get(login_url)
 
-    #xtree lxml
-    #tree = html.fromstring(result.text)
-    #authenticity_token = list(set(tree.xpath("//input[@name='_csrf']/@value")))[0]
-
-    #beautifulsoup
+    #beautifulsoup for getting the authenticy token
     result_soup = soup(result.content, 'html.parser')
     authenticity_token = result_soup.find("input", {"name": "_csrf"})['value']
+
+    #read in the credentials
+    credential_soup = soup(open("credentials.html"), 'html.parser')
+    muse_score_credential_container = credential_soup.find("div", {"class":"muse_score"})
+    USERNAME = muse_score_credential_container.find("input", {"name":"username"})['value']
+    PASSWORD = muse_score_credential_container.find("input", {"name":"password"})['value']
+
+    #create the payload for login
     payload = {"username": USERNAME,
-               "password": PASSWORT,
+               "password": PASSWORD,
                "_csrf": authenticity_token}
 
     #log in
@@ -36,8 +38,8 @@ def main():
     if result.status_code != 200:
         print("Failure at login")
         return -1
-    #proceed to main page and scrape
 
+    #proceed to main page and scrape
     result = session_requests.get(url,headers = dict(referer = url))
     result_soup = soup(result.content, 'html.parser')
     titles_container = result_soup.find_all("h2","score-info__title")
